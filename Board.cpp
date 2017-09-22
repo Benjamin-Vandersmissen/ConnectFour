@@ -35,13 +35,7 @@ bool Board::setRow(int x, int color) {
 }
 
 bool Board::setRow(int x, int color, int &y) {
-    if (x < 0 || x >= WIDTH)
-        throw std::out_of_range{"Board::setRow"};
-    y = 0;
-    while(y < HEIGHT && (*this)(x,y) != -1){
-        y++;
-    }
-    if (y != HEIGHT){
+    if (isRowFree(x, y)){
         board[x][y] = color;
         return true;
     }
