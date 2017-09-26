@@ -5,11 +5,11 @@
 #include "Board.h"
 
 Board::Board() {
-    board = std::vector<std::vector<int>>(WIDTH, std::vector<int>(HEIGHT, -1));
+    board = std::vector<std::vector<int>>(BOARD_WIDTH, std::vector<int>(BOARD_HEIGHT, -1));
 }
 
 int Board::operator()(int x, int y) {
-    if (x >= WIDTH || x < 0 || y >= HEIGHT || y < 0)
+    if (x >= BOARD_WIDTH || x < 0 || y >= BOARD_HEIGHT || y < 0)
         throw std::out_of_range{"Board::operator()"};
     return board[x][y];
 }
@@ -20,13 +20,13 @@ bool Board::isRowFree(int x) {
 }
 
 bool Board::isRowFree(int x, int &y) {
-    if (x < 0 || x >= WIDTH)
+    if (x < 0 || x >= BOARD_WIDTH)
         throw std::out_of_range{"Board::isRowFree"};
     y = 0;
-    while(y < HEIGHT && (*this)(x,y) != -1){
+    while(y < BOARD_HEIGHT && (*this)(x,y) != -1){
         y++;
     }
-    return y != HEIGHT;
+    return y != BOARD_HEIGHT;
 }
 
 bool Board::setRow(int x, int color) {
@@ -56,13 +56,13 @@ bool Board::connectI(int x, int y, int j, int color) {
 
     int sequence = 0;
     //horizontal
-    for(int i = std::max(0, x - (j-1)); i < std::min(WIDTH-1, x + j); i++){
+    for(int i = std::max(0, x - (j-1)); i < std::min(BOARD_WIDTH-1, x + j); i++){
         if ((*this)(i, y) == color){
             sequence ++;
         }
         else{
             sequence = 0;
-            if (WIDTH - i < j)
+            if (BOARD_WIDTH - i < j)
                 break;
         }
         if (sequence == j)
@@ -70,13 +70,13 @@ bool Board::connectI(int x, int y, int j, int color) {
     }
     sequence = 0;
     //vertical
-    for(int i = std::max(0, y - (j-1)); i < std::min(HEIGHT-1, y + j); i++){
+    for(int i = std::max(0, y - (j-1)); i < std::min(BOARD_HEIGHT-1, y + j); i++){
         if ((*this)(x, i) == color){
             sequence ++;
         }
         else{
             sequence = 0;
-            if (HEIGHT - i < j)
+            if (BOARD_HEIGHT - i < j)
                 break;
         }
         if (sequence == j)
@@ -84,13 +84,13 @@ bool Board::connectI(int x, int y, int j, int color) {
     }
     sequence = 0;
     //diagonal, going upward
-    for(int i = -std::min(std::min(x, j), std::min(y, j)); x+i < WIDTH && y+i < HEIGHT; i++){
+    for(int i = -std::min(std::min(x, j), std::min(y, j)); x+i < BOARD_WIDTH && y+i < BOARD_HEIGHT; i++){
         if ((*this)(x+i, y+i) == color){
             sequence ++;
         }
         else{
             sequence = 0;
-            if (WIDTH-(x+i) < j || HEIGHT-(y+i) < j)
+            if (BOARD_WIDTH-(x+i) < j || BOARD_HEIGHT-(y+i) < j)
                 break;
         }
         if (sequence == j)
@@ -98,13 +98,13 @@ bool Board::connectI(int x, int y, int j, int color) {
     }
     sequence = 0;
     //diagonal going downward
-    for(int i = -std::min(std::min(x,j), std::min(HEIGHT-y-1, j)); x+i < WIDTH && y-i >= 0; i++){
+    for(int i = -std::min(std::min(x,j), std::min(BOARD_HEIGHT-y-1, j)); x+i < BOARD_WIDTH && y-i >= 0; i++){
         if ((*this)(x+i,y-i) == color){
             sequence++;
         }
         else{
             sequence = 0;
-            if (WIDTH-(x+i) < j || (y-i) < j)
+            if (BOARD_WIDTH-(x+i) < j || (y-i) < j)
                 break;
         }
         if (sequence == j)
@@ -116,9 +116,7 @@ bool Board::connectI(int x, int y, int j, int color) {
 int Board::AIChance(int x, int y, int color) {
     int chance = 0;
 
-    std::vector<int> colors = std::vector<int>(NRCOLORS);
-    std::iota(colors.begin(), colors.end(), 0); //fill the vector with sequential numbers starting from zero
-    for(int tempcolor : colors) {
+    for(int tempcolor = 0; tempcolor < BOARD_NRCOLORS; tempcolor++) {
         if (color == tempcolor)
             continue;
         if (willConnectI(x, y, 4, tempcolor)) {
@@ -131,13 +129,13 @@ int Board::AIChance(int x, int y, int color) {
              * de ander kan 3 op een rij halen door op deze plek iets te zetten, maar geen 4 op een rij
              * controleer of door hier te plaatsen de ander niet 4 op een rij kan halen op de positie erboven
              * */
-            chance += 60 * (y < HEIGHT - 1 ? !willConnectI(x, y + 1, 4, tempcolor) : 1);
+            chance += 60 * (y < BOARD_HEIGHT - 1 ? !willConnectI(x, y + 1, 4, tempcolor) : 1);
         } else if (willConnectI(x, y, 2, tempcolor)) {
             /**
              * de ander kan 2 op een rij halen door op deze plek iets te zetten, maar geen 3 of 4 op een rij
              * controleer of door hier te plaatsen de ander niet 4 op een rij kan halen op de positie erboven
              * */
-            chance += 20 * (y < HEIGHT - 1 ? !willConnectI(x, y + 1, 4, tempcolor) : 1);
+            chance += 20 * (y < BOARD_HEIGHT - 1 ? !willConnectI(x, y + 1, 4, tempcolor) : 1);
         }
     }
     chance = chance / 2 + chance%2; //afronden naar boven;
@@ -154,7 +152,7 @@ int Board::AIChance(int x, int y, int color) {
          * controleer of door hier te plaatsen de ander niet 4 op een rij kan halen op de positie erboven
          * */
         int tempchance  = 80 + (countPossibleI(x, y, 4, color) -1) * 20;
-        chance += tempchance * (y < HEIGHT-1 ? !willConnectI(x, y+1, 4, !color) : 1);
+        chance += tempchance * (y < BOARD_HEIGHT-1 ? !willConnectI(x, y+1, 4, !color) : 1);
     }
     else if (willConnectI(x, y, 2, color)){
         /**
@@ -163,7 +161,7 @@ int Board::AIChance(int x, int y, int color) {
          * controleer of door hier te plaatsen de ander niet 4 op een rij kan halen op de positie erboven
          * */
         int tempchance  = 40 + (countPossibleI(x, y, 4, color) -1) * 10;
-        chance += tempchance * (y < HEIGHT-1 ? !willConnectI(x, y+1, 4, !color) : 1);
+        chance += tempchance * (y < BOARD_HEIGHT-1 ? !willConnectI(x, y+1, 4, !color) : 1);
     }
     else{
         /**
@@ -172,7 +170,7 @@ int Board::AIChance(int x, int y, int color) {
          * controleer of door hier te plaatsen de ander niet 4 op een rij kan halen op de positie erboven
          * */
         int tempchance  = 10 + (countPossibleI(x, y, 4, color) -1) * 5;
-        chance += tempchance * (y < HEIGHT-1 ? !willConnectI(x, y+1, 4, !color) : 1);
+        chance += tempchance * (y < BOARD_HEIGHT-1 ? !willConnectI(x, y+1, 4, !color) : 1);
     }
 
 //    chance += 100 * connectI(x, y, 4, !color);
@@ -187,10 +185,10 @@ int Board::AIChance(int x, int y, int color) {
 }
 
 bool Board::AImove(int color) {
-    std::vector<std::pair<int,int>> chances(WIDTH, {0,-1});
+    std::vector<std::pair<int,int>> chances(BOARD_WIDTH, {0,-1});
     int maxChance = -1;
     int pos = 0;
-    for(int x = 0; x < WIDTH; x++){
+    for(int x = 0; x < BOARD_WIDTH; x++){
         if(isRowFree(x, chances[x].first)){
             chances[x].second = AIChance(x, chances[x].first, color);
         }
@@ -206,8 +204,8 @@ bool Board::AImove(int color) {
 }
 
 int Board::countPossibleI(int x, int y, int j, int color) {
-    int possibilities = (x <= WIDTH-j) + (x >= j-1) + (y <= HEIGHT - j) + (y >= j-1) +
-            (x <= WIDTH - j && y <= HEIGHT - j) + (x <= WIDTH - j && y >= j-1) + (x >= j-1 && y <= HEIGHT - j) +
+    int possibilities = (x <= BOARD_WIDTH-j) + (x >= j-1) + (y <= BOARD_HEIGHT - j) + (y >= j-1) +
+            (x <= BOARD_WIDTH - j && y <= BOARD_HEIGHT - j) + (x <= BOARD_WIDTH - j && y >= j-1) + (x >= j-1 && y <= BOARD_HEIGHT - j) +
             (x >= j-1 && y >= j-1);
     return possibilities;
 }
@@ -222,16 +220,16 @@ bool Board::willConnectI(int x, int y, int j, int color) {
 
 bool Board::isFull() {
     bool retvalue = true;
-    for(int i = 0; i < WIDTH; i++){
-        retvalue = retvalue && (*this)(i, HEIGHT-1) != -1;
+    for(int i = 0; i < BOARD_WIDTH; i++){
+        retvalue = retvalue && (*this)(i, BOARD_HEIGHT-1) != -1;
     }
     return retvalue;
 }
 
 std::ostream &operator<<(std::ostream &stream, Board &b) {
-    for(int y = HEIGHT-1; y >= 0; y--){
+    for(int y = BOARD_HEIGHT-1; y >= 0; y--){
         stream << '|';
-        for(int x = 0; x < WIDTH; x++){
+        for(int x = 0; x < BOARD_WIDTH; x++){
             if (b(x,y) == -1){
                 stream << ' ';
             }

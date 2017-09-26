@@ -10,9 +10,9 @@
 #include <random>
 #include <numeric>
 
-const int WIDTH = 7;
-const int HEIGHT = 7;
-const int NRCOLORS = 2;
+const int BOARD_WIDTH = 7;
+const int BOARD_HEIGHT = 7;
+const int BOARD_NRCOLORS = 2;
 
 class Board {
 private:
